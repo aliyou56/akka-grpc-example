@@ -1,0 +1,176 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>dev.aliyou</groupId>
+  <artifactId>akka-grpc-example</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+
+  <properties>
+    <scala.version>2.13.7</scala.version>
+    <scala.binary.version>2.13</scala.binary.version>
+    <akka.version>2.6.17</akka.version>
+    <akka.http.version>10.2.7</akka.http.version>
+    <akka.grpc.version>2.1.2</akka.grpc.version>
+
+    <scalapb-runtime.version>0.11.7</scalapb-runtime.version>
+    <protobuf-java.version>3.19.1</protobuf-java.version>
+    <proto-google-common-protos.version>2.7.0</proto-google-common-protos.version>
+
+    <scala-maven-plugin.version>4.5.4</scala-maven-plugin.version>
+    <build-helper-maven-plugin.version>3.2.0</build-helper-maven-plugin.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-library</artifactId>
+      <version>${scala.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.lightbend.akka.grpc</groupId>
+      <artifactId>akka-grpc-runtime_${scala.binary.version}</artifactId>
+      <version>${akka.grpc.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>net.alchim31.maven</groupId>
+        <artifactId>scala-maven-plugin</artifactId>
+        <version>${scala-maven-plugin.version}</version>
+        <configuration>
+          <scalaCompatVersion>${scala.binary.version}</scalaCompatVersion>
+          <scalaVersion>${scala.version}</scalaVersion>
+          <args>
+            <arg>-deprecation</arg>
+            <arg>-Wconf:src=target/.*:s</arg>
+
+            <arg>-Werror</arg>
+          </args>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>compile</goal>
+              <goal>testCompile</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!--  unpack proto files from external dependencies   -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>unpack</id>
+              <phase>generate-sources</phase>
+              <goals>
+                <goal>unpack</goal>
+              </goals>
+              <configuration>
+                <artifactItems>
+
+                  <!-- <artifactItem>
+                    <groupId>com.thesamet.scalapb.common-protos</groupId>
+                    <artifactId>proto-google-common-protos-scalapb_0.11_${scala.binary.version}</artifactId>
+                    <version>2.5.0-2</version>
+                    <type>jar</type>
+                    <overWrite>true</overWrite>
+                    <outputDirectory>${project.build.directory}/proto</outputDirectory>
+                    <includes>**/*.proto</includes>
+                    <excludes>**/*.scala</excludes>
+                  </artifactItem>
+                  <artifactItem>
+                    <groupId>com.thesamet.scalapb</groupId>
+                    <artifactId>scalapb-runtime_${scala.binary.version}</artifactId>
+                    <version>${scalapb-runtime.version}</version>
+                    <type>jar</type>
+                    <overWrite>true</overWrite>
+                    <outputDirectory>${project.build.directory}/proto</outputDirectory>
+                    <includes>**/*.proto</includes>
+                    <excludes>**/*.scala</excludes>
+                  </artifactItem> -->
+
+                  <!-- to use protobuf common types -->
+                  <artifactItem>
+                    <groupId>com.google.protobuf</groupId>
+                    <artifactId>protobuf-java</artifactId>
+                    <version>${protobuf-java.version}</version>
+                    <type>jar</type>
+                    <overWrite>true</overWrite>
+                    <outputDirectory>${project.build.directory}/proto</outputDirectory>
+                    <includes>**/*.proto</includes>
+                    <excludes>**/*.java</excludes>
+                  </artifactItem>
+
+                  <!-- to use protobuf common types -->
+                  <!-- <artifactItem>
+                    <groupId>com.google.api.grpc</groupId>
+                    <artifactId>proto-google-common-protos</artifactId>
+                    <version>${proto-google-common-protos.version}</version>
+                    <type>jar</type>
+                    <overWrite>true</overWrite>
+                    <outputDirectory>${project.build.directory}/proto</outputDirectory>
+                    <includes>**/*.proto</includes>
+                    <excludes>**/*.java</excludes>
+                  </artifactItem> -->
+                </artifactItems>
+                <overWriteReleases>false</overWriteReleases>
+                <overWriteSnapshots>hots>true</overWriteSnapshots>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>com.lightbend.akka.grpc</groupId>
+        <artifactId>akka-grpc-maven-plugin</artifactId>
+        <version>${akka.grpc.version}</version>
+        <configuration>
+          <language>Scala</language>
+          <!-- <generateClient>false</generateClient>
+          <generateServer>true</generateServer> -->
+          <protoPaths>
+            <protoPath>target/proto</protoPath>
+            <!-- <protoPath>src/main/proto</protoPath> -->
+          </protoPaths>
+        </configuration>
+        <executions>
+          <execution>
+            <id>generate</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- makes akka-grpc-maven-plugin generated classes available as sources -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>${build-helper-maven-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>add-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${project.build.directory}/generated-sources/akka-grpc-scala/</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

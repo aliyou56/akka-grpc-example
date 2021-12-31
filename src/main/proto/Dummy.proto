@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package dev.aliyou.generated.services;
+
+import "google/protobuf/empty.proto";
+
+service DumyService {
+  rpc GetValue (google.protobuf.Empty) returns (Response);
+}
+
+message Response {
+  string value = 1;
+}
